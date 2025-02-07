@@ -1,0 +1,109 @@
+#include <iostream>
+#include <vector>
+#include <limits>  // Для обработки ошибок ввода
+
+// Функция для отображения игрового поля
+void printField(const std::vector<char>& field) {
+    std::cout << "\n";
+    for (int i = 0; i < 3; ++i) {
+        std::cout << " " << field[i*3] << " | " << field[i*3+1] << " | " << field[i*3+2] << " \n";
+        if (i < 2) std::cout << "---|---|---\n";
+    }
+    std::cout << "\n";
+}
+
+// Функция для проверки победы
+bool checkWin(const std::vector<char>& field, char player) {
+    const int winCombos[8][3] = {
+        {0, 1, 2}, {3, 4, 5}, {6, 7, 8}, // Строки
+        {0, 3, 6}, {1, 4, 7}, {2, 5, 8}, // Столбцы
+        {0, 4, 8}, {2, 4, 6}            // Диагонали
+    };
+
+    for (const auto& combo : winCombos) {
+        if (field[combo[0]] == player && field[combo[1]] == player && field[combo[2]] == player) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Функция для получения и проверки ввода игрока
+int getPlayerMove(const std::vector<char>& field) {
+    int move;
+    while (true) {
+        std::cout << "Введите номер клетки (от 1 до 9): ";
+        std::cin >> move;
+
+        // Проверка на некорректный ввод (не число)
+        if (std::cin.fail()) {
+            std::cin.clear();  // Сбрасываем ошибку
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');  // Очищаем ввод
+            std::cout << "Пожалуйста, введите корректное число!\n";
+            continue;
+        }
+
+        // Проверка на допустимый номер клетки (от 1 до 9) и пустоту клетки
+        if (move < 1 || move > 9 || field[move - 1] == 'X' || field[move - 1] == 'O') {
+            std::cout << "Неверный ход. Попробуйте снова.\n";
+        } else {
+            return move - 1;  // Возвращаем индекс клетки
+        }
+    }
+}
+
+int main() {
+    std::cout << "Добро пожаловать в игру 'Крестики-нолики'!\n";
+
+    // Основной цикл игры
+    do {
+        std::vector<char> field(9); // Игровое поле (9 клеток)
+        for (int i = 0; i < 9; ++i) {
+            field[i] = '1' + i; // Изначально заполняем поле номерами клеток от 1 до 9
+        }
+
+        char currentPlayer = 'X'; // Начинает игрок X
+        int moveCount = 0; // Счётчик ходов
+
+        while (true) {
+            printField(field);
+            std::cout << "Ход игрока " << currentPlayer << ":\n";
+
+            // Получаем ход от текущего игрока
+            int move = getPlayerMove(field);
+            field[move] = currentPlayer; // Применяем ход
+
+            moveCount++;
+
+            // Проверка на победу
+            if (checkWin(field, currentPlayer)) {
+                printField(field);
+                std::cout << "Поздравляем! Игрок " << currentPlayer << " победил!\n";
+                break;
+            }
+
+            // Проверка на ничью (все клетки заняты)
+            if (moveCount == 9) {
+                printField(field);
+                std::cout << "Ничья! Поле заполнено.\n";
+                break;
+            }
+
+            // Смена игрока
+            currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
+        }
+
+        // Спрашиваем, хочет ли игрок начать новую игру
+        char playAgain;
+        std::cout << "Хотите сыграть еще раз? (y/n): ";
+        std::cin >> playAgain;
+
+        if (playAgain != 'y' && playAgain != 'Y') {
+            break; // Завершаем программу, если игрок не хочет продолжать
+        }
+
+    } while (true);
+
+    std::cout << "Спасибо за игру! До свидания!\n";
+    return 0;
+}
